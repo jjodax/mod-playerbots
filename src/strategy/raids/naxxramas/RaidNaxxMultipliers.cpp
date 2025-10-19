@@ -19,7 +19,6 @@
 #include "ShamanActions.h"
 #include "UseMeetingStoneAction.h"
 #include "WarriorActions.h"
-#include "SharedDefines.h"
 
 float GrobbulusMultiplier::GetValue(Action* action)
 {
@@ -49,20 +48,16 @@ float HeiganDanceMultiplier::GetValue(Action* action)
     }
     EventMap* eventMap = &boss_ai->events;
     uint32 curr_phase = boss_ai->currentPhase;
-
-    // Get remaining time until events
-    Milliseconds curr_dance = eventMap->GetTimeUntilEvent(4);
-    Milliseconds curr_erupt = eventMap->GetTimeUntilEvent(3);
-
+    uint32 curr_dance = eventMap->GetNextEventTime(4);
+    uint32 curr_timer = eventMap->GetTimer();
+    uint32 curr_erupt = eventMap->GetNextEventTime(3);
     if (dynamic_cast<CombatFormationMoveAction*>(action) ||
         dynamic_cast<CastDisengageAction*>(action) ||
-        dynamic_cast<CastBlinkBackAction*>(action))
+        dynamic_cast<CastBlinkBackAction*>(action) )
     {
         return 0.0f;
     }
-
-    // Replace old subtraction with direct comparison
-    if (curr_phase != 1 && curr_dance >= Milliseconds(3000))
+    if (curr_phase != 1 && (int32)curr_dance - curr_timer >= 3000)
     {
         return 1.0f;
     }
