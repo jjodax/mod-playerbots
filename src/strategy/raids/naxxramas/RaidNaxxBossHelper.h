@@ -60,7 +60,7 @@ public:
         {
             return false;
         }
-        _timer = 0; //_event_map->GetTimer(); TODO: change back, still testing
+        _timer = _event_map->GetTimer();
         return true;
     }
     virtual void Reset()
@@ -88,15 +88,8 @@ public:
     const std::pair<float, float> center = {3716.19f, -5106.58f};
     const std::pair<float, float> tank_pos = {3709.19f, -5104.86f};
     const std::pair<float, float> assist_tank_pos = {3746.05f, -5112.74f};
-    bool IsPhaseOne()
-    {
-        return !_event_map->IsInPhase(Kelthuzad::EVENT_PHASE_2) &&
-            !_event_map->IsInPhase(Kelthuzad::EVENT_PHASE_3);
-    }
-    bool IsPhaseTwo()
-    {
-        return _event_map->IsInPhase(Kelthuzad::EVENT_PHASE_2);
-    }
+    bool IsPhaseOne() { return _event_map->GetNextEventTime(Kelthuzad::EVENT_PHASE_2) != 0; }
+    bool IsPhaseTwo() { return !IsPhaseOne(); }
     Unit* GetAnyShadowFissure()
     {
         Unit* shadow_fissure = nullptr;
@@ -131,31 +124,22 @@ public:
     bool UpdateBossAI() override
     {
         if (!GenericBossHelper::UpdateBossAI())
+        {
             return false;
-
-        Milliseconds nextEventGround = _event_map->GetTimeUntilEvent(Sapphiron::EVENT_GROUND);
-
-        // Only update if the event exists and is different from the last stored time
-        if (nextEventGround != Milliseconds::max() && nextEventGround != lastEventGround)
+        }
+        uint32 nextEventGround = _event_map->GetNextEventTime(Sapphiron::EVENT_GROUND);
+        if (nextEventGround && nextEventGround != lastEventGround)
             lastEventGround = nextEventGround;
-
         return true;
     }
     bool IsPhaseGround() { return _target->GetReactState() == REACT_AGGRESSIVE; }
     bool IsPhaseFlight() { return !IsPhaseGround(); }
     bool JustLanded()
     {
-        Milliseconds timeUntilFlightStart = _event_map->GetTimeUntilEvent(Sapphiron::EVENT_FLIGHT_START);
-
-        if (timeUntilFlightStart == Milliseconds::max())
-            return false;  // event not scheduled
-
-        return timeUntilFlightStart >= Milliseconds(EVENT_FLIGHT_INTERVAL - POSITION_TIME_AFTER_LANDED);
+        return (_event_map->GetNextEventTime(Sapphiron::EVENT_FLIGHT_START) - _timer) >=
+               EVENT_FLIGHT_INTERVAL - POSITION_TIME_AFTER_LANDED;
     }
-    bool WaitForExplosion()
-    {
-        return _event_map->GetTimeUntilEvent(Sapphiron::EVENT_FLIGHT_SPELL_EXPLOSION) != Milliseconds::max();
-    }
+    bool WaitForExplosion() { return _event_map->GetNextEventTime(Sapphiron::EVENT_FLIGHT_SPELL_EXPLOSION); }
     bool FindPosToAvoidChill(std::vector<float>& dest)
     {
         Aura* aura = botAI->GetAura("chill", bot);
@@ -218,7 +202,7 @@ public:
 private:
     const uint32 POSITION_TIME_AFTER_LANDED = 5000;
     const uint32 EVENT_FLIGHT_INTERVAL = 45000;
-    Milliseconds lastEventGround = 0ms;
+    uint32 lastEventGround = 0;
 };
 
 class GluthBossHelper : public GenericBossHelper<Gluth::boss_gluth::boss_gluthAI>
@@ -236,12 +220,8 @@ public:
     GluthBossHelper(PlayerbotAI* botAI) : GenericBossHelper(botAI, "gluth") {}
     bool BeforeDecimate()
     {
-        Milliseconds timeUntilDecimate = _event_map->GetTimeUntilEvent(Gluth::EVENT_DECIMATE);
-
-        if (timeUntilDecimate == Milliseconds::max())
-            return false;  // event not scheduled
-
-        return timeUntilDecimate <= Milliseconds(3000);
+        uint32 decimate = _event_map->GetNextEventTime(Gluth::EVENT_DECIMATE);
+        return decimate && decimate - _timer <= 3000;
     }
     bool JustStartCombat() { return _timer < 10000; }
 };
@@ -283,10 +263,11 @@ public:
             return true;
         }
         ladyEvent = &ladyAI->events;
-        if (Milliseconds voidZone = ladyEvent->GetTimeUntilEvent(FourHorsemen::EVENT_SECONDARY_SPELL);
-            voidZone != Milliseconds::max() && lastEventVoidZone != voidZone)
+        const uint32 voidZone = ladyEvent->GetNextEventTime(FourHorsemen::EVENT_SECONDARY_SPELL);
+        if (voidZone && lastEventVoidZone != voidZone)
         {
-            voidZoneCounter = (voidZoneCounter + 1) % 8;
+            voidZoneCounter++;
+            voidZoneCounter %= 8;
             lastEventVoidZone = voidZone;
         }
         return true;
@@ -298,7 +279,7 @@ public:
         lady = nullptr;
         ladyAI = nullptr;
         ladyEvent = nullptr;
-        lastEventVoidZone = 0ms;
+        lastEventVoidZone = 0;
         voidZoneCounter = 0;
         posToGo = 0;
     }
@@ -367,7 +348,7 @@ protected:
     Unit* lady = nullptr;
     FourHorsemen::boss_four_horsemen::boss_four_horsemenAI* ladyAI = nullptr;
     EventMap* ladyEvent = nullptr;
-    Milliseconds lastEventVoidZone = 0ms;
+    uint32 lastEventVoidZone = 0;
     uint32 voidZoneCounter = 0;
     int posToGo = 0;
 };
