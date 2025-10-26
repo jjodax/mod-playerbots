@@ -95,6 +95,7 @@ The [Playerbots Wiki](https://github.com/mod-playerbots/mod-playerbots/wiki) con
 
 ## Code standards
 - https://www.azerothcore.org/wiki/cpp-code-standards
+- Each Pull Request must include all test scenarios performed by the author, along with the results, to demonstrate that the changes were properly verified.
 
 ## Addons
 
