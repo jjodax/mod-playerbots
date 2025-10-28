@@ -2237,16 +2237,13 @@ bool PlayerbotAI::IsHealAssistantOfIndex(Player* player, int index)
     for (GroupReference* ref = group->GetFirstMember(); ref; ref = ref->next())
     {
         Player* member = ref->GetSource();
-        if (!member)
+        if (!member || !IsHeal(member))
             continue;
 
-        if (IsHeal(member))
-        {
-            if (group->IsAssistant(member->GetGUID()))
-                assistantHealers.push_back(member);
-            else
-                nonAssistantHealers.push_back(member);
-        }
+        if (group->IsAssistant(member->GetGUID()))
+            assistantHealers.push_back(member);
+        else
+            nonAssistantHealers.push_back(member);
     }
 
     // Combine: assistants before non-assistants
@@ -2272,16 +2269,13 @@ bool PlayerbotAI::IsRangedDpsAssistantOfIndex(Player* player, int index)
     for (GroupReference* ref = group->GetFirstMember(); ref; ref = ref->next())
     {
         Player* member = ref->GetSource();
-        if (!member)
+        if (!member || !IsRangedDps(member))
             continue;
 
-        if (IsRangedDps(member))
-        {
-            if (group->IsAssistant(member->GetGUID()))
-                assistantRangedDps.push_back(member);
-            else
-                nonAssistantRangedDps.push_back(member);
-        }
+        if (group->IsAssistant(member->GetGUID()))
+            assistantRangedDps.push_back(member);
+        else
+            nonAssistantRangedDps.push_back(member);
     }
 
     // Combine: assistants before non-assistants
@@ -2307,16 +2301,13 @@ bool PlayerbotAI::IsAssistTankOfIndex(Player* player, int index)
     for (GroupReference* ref = group->GetFirstMember(); ref; ref = ref->next())
     {
         Player* member = ref->GetSource();
-        if (!member)
+        if (!member || !IsAssistTank(member))
             continue;
 
-        if (IsAssistTank(member))
-        {
-            if (group->IsAssistant(member->GetGUID()))
-                assistTanks.push_back(member);
-            else
-                nonAssistTanks.push_back(member);
-        }
+        if (group->IsAssistant(member->GetGUID()))
+            assistTanks.push_back(member);
+        else
+            nonAssistTanks.push_back(member);
     }
 
     // Combine: assistants before non-assistants
