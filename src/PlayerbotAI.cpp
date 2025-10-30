@@ -2226,7 +2226,7 @@ uint32 PlayerbotAI::GetGroupTankNum(Player* player)
 
 bool PlayerbotAI::IsHealAssistantOfIndex(Player* player, int index)
 {
-    Group* group = bot->GetGroup();
+    Group* group = player->GetGroup();
     if (!group)
     {
         return false;
@@ -2265,7 +2265,7 @@ bool PlayerbotAI::IsRangedDps(Player* player, bool bySpec) { return IsRanged(pla
 
 bool PlayerbotAI::IsRangedDpsAssistantOfIndex(Player* player, int index)
 {
-    Group* group = bot->GetGroup();
+    Group* group = player->GetGroup();
     if (!group)
     {
         return false;
@@ -2304,7 +2304,7 @@ bool PlayerbotAI::IsAssistTank(Player* player) { return IsTank(player) && !IsMai
 
 bool PlayerbotAI::IsAssistTankOfIndex(Player* player, int index)
 {
-    Group* group = bot->GetGroup();
+    Group* group = player->GetGroup();
     if (!group)
     {
         return false;
