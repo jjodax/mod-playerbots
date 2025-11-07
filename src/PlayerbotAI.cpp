@@ -367,7 +367,13 @@ void PlayerbotAI::UpdateAIGroupAndMaster()
 {
     if (!bot)
         return;
+
+    PlayerbotAI* botAI = GET_PLAYERBOT_AI(bot);
+    if (!botAI)
+        return;
+
     Group* group = bot->GetGroup();
+
     // If bot is not in group verify that for is RandomBot before clearing  master and resetting.
     if (!group)
     {
@@ -380,12 +386,9 @@ void PlayerbotAI::UpdateAIGroupAndMaster()
         return;
     }
 
-    if (bot->InBattleground() && bot->GetBattleground()->GetBgTypeID() != BATTLEGROUND_AV)
-        return;
-
-    PlayerbotAI* botAI = GET_PLAYERBOT_AI(bot);
-    if (!botAI)
-        return;
+    // Bot in BG, but master no longer part of a group: release master
+    if (bot->InBattleground() && master && !master->GetGroup())
+        SetMaster(nullptr);
 
     PlayerbotAI* masterBotAI = nullptr;
     if (master)
