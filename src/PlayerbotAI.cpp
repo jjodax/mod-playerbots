@@ -374,10 +374,12 @@ void PlayerbotAI::UpdateAIGroupAndMaster()
 
     Group* group = bot->GetGroup();
 
+    bool IsRandomBot = sRandomPlayerbotMgr->IsRandomBot(bot);
+
     // If bot is not in group verify that for is RandomBot before clearing  master and resetting.
     if (!group)
     {
-        if (master && sRandomPlayerbotMgr->IsRandomBot(bot))
+        if (master && IsRandomBot)
         {
             SetMaster(nullptr);
             Reset(true);
@@ -387,7 +389,8 @@ void PlayerbotAI::UpdateAIGroupAndMaster()
     }
 
     // Bot in BG, but master no longer part of a group: release master
-    if (bot->InBattleground() && master && !master->GetGroup())
+    // Exclude alt and addclass bots as they rely on current (real player) master, security-wise.
+    if (bot->InBattleground() && IsRandomBot && master && !master->GetGroup())
         SetMaster(nullptr);
 
     PlayerbotAI* masterBotAI = nullptr;
